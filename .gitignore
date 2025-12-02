@@ -1,0 +1,29 @@
+# Build directories
+build/
+cmake-build-*/
+
+# Conan
+.venv/
+CMakeUserPresets.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Compiled files
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+
+# Generated files
+compile_commands.json
+
+# OS files
+.DS_Store
+Thumbs.db
+

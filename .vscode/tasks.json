@@ -1,0 +1,205 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Ensure Conan",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "if [ ! -d .venv ]; then python3 -m venv .venv; fi && source .venv/bin/activate && pip install --upgrade pip && pip install conan"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Conan Install Debug",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source .venv/bin/activate && conan install . --output-folder=build/Debug --build=missing -s build_type=Debug"
+            ],
+            "group": "build",
+            "dependsOn": [
+                "Ensure Conan"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Conan Install Release",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source .venv/bin/activate && conan install . --output-folder=build/Release --build=missing -s build_type=Release"
+            ],
+            "group": "build",
+            "dependsOn": [
+                "Ensure Conan"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Configure Debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "conan-debug"
+            ],
+            "group": "build",
+            "dependsOn": [
+                "Conan Install Debug"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Debug All Tools",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "conan-debug"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": [
+                "CMake Configure Debug"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Build Debug Specific Tool",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "conan-debug",
+                "--target",
+                "${input:toolName}"
+            ],
+            "group": "build",
+            "dependsOn": [
+                "CMake Configure Debug"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Run Unit Tests",
+            "type": "shell",
+            "command": "ctest",
+            "args": [
+                "--preset",
+                "conan-debug",
+                "--output-on-failure"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "dependsOn": [
+                "Build Debug All Tools"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean Build",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-rf",
+                "build"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Full Build Debug",
+            "type": "shell",
+            "command": "echo",
+            "args": [
+                "Build complete"
+            ],
+            "group": "build",
+            "dependsOn": [
+                "Build Debug All Tools"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "toolName",
+            "type": "pickString",
+            "description": "Select the tool to build",
+            "options": [
+                "cp_file",
+                "tail",
+                "core_cli",
+                "test_core_cli",
+                "test_cp_file",
+                "test_tail"
+            ],
+            "default": "cp_file"
+        }
+    ]
+}

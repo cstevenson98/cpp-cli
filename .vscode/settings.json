@@ -1,0 +1,11 @@
+{
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}",
+        "--header-insertion=never",
+        "--background-index"
+    ],
+    "clangd.path": "clangd",
+    "editor.formatOnSave": true,
+    "C_Cpp.intelliSenseEngine": "disabled"
+}
+

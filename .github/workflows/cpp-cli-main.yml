@@ -1,0 +1,81 @@
+name: cpp-cli-main
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+          python -m pip install --upgrade pip
+          pip install conan
+
+      - name: Setup Conan profile
+        run: conan profile detect --force
+
+      - name: Install Conan dependencies
+        run: conan install . --build=missing -s build_type=Release
+
+      - name: Configure CMake
+        run: cmake --preset conan-release
+
+      - name: Build
+        run: cmake --build --preset conan-release
+
+      - name: Run tests
+        run: ctest --preset conan-release --output-on-failure --output-junit test-results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: build/Release/test-results.xml
+
+      - name: Test Report Summary
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Unit Tests
+          path: build/Release/test-results.xml
+          reporter: java-junit
+
+  docker-build:
+    runs-on: ubuntu-24.04
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t cpp-cli-main .
+
+      - name: Run tests in Docker
+        run: |
+          docker run --name cpp-cli-test cpp-cli-main
+          docker cp cpp-cli-test:/app/build/Release/test-results.xml ./docker-test-results.xml
+
+      - name: Upload Docker test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-test-results
+          path: docker-test-results.xml
+

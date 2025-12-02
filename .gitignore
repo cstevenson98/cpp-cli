@@ -22,6 +22,7 @@ CMakeUserPresets.json
 
 # Generated files
 compile_commands.json
+test-results.xml
 
 # OS files
 .DS_Store

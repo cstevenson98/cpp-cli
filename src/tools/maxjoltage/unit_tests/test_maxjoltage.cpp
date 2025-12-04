@@ -25,84 +25,41 @@ TEST(LineToVectorTest, MultipleDigits) {
   EXPECT_EQ(result[2], 3);
 }
 
-// insert_into_sorted_list tests
-TEST(InsertIntoSortedListTest, InsertIntoEmpty) {
-  std::list<int> list;
-  insert_into_sorted_list(list, 5, 3);
-  ASSERT_EQ(list.size(), 1u);
-  EXPECT_EQ(list.front(), 5);
-}
-
-TEST(InsertIntoSortedListTest, MaintainsSortedOrder) {
-  std::list<int> list;
-  insert_into_sorted_list(list, 3, 5);
-  insert_into_sorted_list(list, 1, 5);
-  insert_into_sorted_list(list, 2, 5);
-
-  auto it = list.begin();
-  EXPECT_EQ(*it++, 1);
-  EXPECT_EQ(*it++, 2);
-  EXPECT_EQ(*it++, 3);
-}
-
-TEST(InsertIntoSortedListTest, TruncatesToSumWidth) {
-  std::list<int> list;
-  insert_into_sorted_list(list, 1, 2);
-  insert_into_sorted_list(list, 2, 2);
-  insert_into_sorted_list(list, 3, 2);
-
-  ASSERT_EQ(list.size(), 2u);
-}
-
-// list_sum tests
-TEST(ListSumTest, EmptyList) {
-  std::list<int> list;
-  EXPECT_EQ(list_sum(list), 0);
-}
-
-TEST(ListSumTest, SingleElement) {
-  std::list<int> list = {5};
-  EXPECT_EQ(list_sum(list), 5);
-}
-
-TEST(ListSumTest, MultipleElements) {
-  std::list<int> list = {1, 2, 3, 4};
-  EXPECT_EQ(list_sum(list), 10);
-}
-
 // maximum_joltage_line tests
 TEST(MaximumJoltageLineTest, EmptyLine) {
-  auto result = maximum_joltage_line("");
+  auto result = maximum_joltage_line_width_2("");
   EXPECT_EQ(result, 0);
 }
 
 TEST(MaximumJoltageLineTest, SingleDigit) {
-  auto result = maximum_joltage_line("5");
+  auto result = maximum_joltage_line_width_2("5");
   EXPECT_EQ(result, 5);
 }
 
 TEST(MaximumJoltageLineTest, DefaultSumWidth) {
-  auto result = maximum_joltage_line("12345");
+  auto result = maximum_joltage_line_width_2("12345");
   // TODO: Verify expected behavior
-  EXPECT_EQ(result, 9);
-}
-
-TEST(MaximumJoltageLineTest, CustomSumWidth) {
-  auto result = maximum_joltage_line("12345", 3);
-  // TODO: Verify expected behavior
-  EXPECT_EQ(result, 12);
+  EXPECT_EQ(result, 45);
 }
 
 TEST(MaximumJoltageLineTwoNines, CustomSumWidth) {
-  auto result = maximum_joltage_line("9999999999");
-  EXPECT_EQ(result, 18);
+  auto result = maximum_joltage_line_width_2("9999999999");
+  EXPECT_EQ(result, 99);
 }
 
-TEST(MaximumJoltageLineLongString, CustomSumWidth) {
-  auto result = maximum_joltage_line(
+TEST(MaximumJoltageLineLongString1, CustomSumWidth) {
+  auto result = maximum_joltage_line_width_2(
       "873692477333777493844793944369834547485424659388147992545248474574646638"
       "2439946467949468336382974347");
-  EXPECT_EQ(result, 18);
+  EXPECT_EQ(result, 99);
+}
+
+TEST(MaximumJoltageLineLongString2, CustomSumWidth) {
+  auto result = maximum_joltage_line_width_2(
+      "252664423221241224234222221512252272525222332143124243224322321342212222"
+      "3455121333122221232322333222");
+  EXPECT_EQ(result, 75);
+  
 }
 
 }  // namespace

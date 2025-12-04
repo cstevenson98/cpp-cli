@@ -27,13 +27,12 @@ int main(int argc, char *argv[]) {
 
         int total_maxjoltage = 0;
         for (const auto &line : lines) {
-          int maxjoltage = maxjoltage::maximum_joltage_line(line);
+          int maxjoltage = maxjoltage::maximum_joltage_line_width_2(line);
           total_maxjoltage += maxjoltage;
         }
         std::printf("%d\n", total_maxjoltage);
         return 0;
       });
 
-  
   return executor.run(argc, argv);
 }

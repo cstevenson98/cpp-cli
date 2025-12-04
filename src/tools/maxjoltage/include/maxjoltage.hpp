@@ -1,11 +1,11 @@
 #pragma once
 
+#include <algorithm>
 #include <list>
 #include <numeric>
 #include <sstream>
 #include <string>
 #include <vector>
-
 namespace maxjoltage {
 
 inline std::vector<int> line_to_vector(const std::string &line) {
@@ -16,32 +16,31 @@ inline std::vector<int> line_to_vector(const std::string &line) {
   return output;
 }
 
-inline void insert_into_sorted_list(std::list<int> &list, int value,
-                                    const int sum_width) {
-  auto it = list.begin();
-  while (it != list.end() && *it < value) {
-    it++;
+inline int maximum_joltage_line_width_2(const std::string &line) {
+  if (line.empty()) {
+    return 0;
   }
-  list.insert(it, value);
-  if (list.size() > sum_width) {
-    list.pop_front();
+  if (line.size() == 1) {
+    return std::stoi(line);
   }
-}
 
-inline int list_sum(const std::list<int> &list) {
-  return std::accumulate(list.begin(), list.end(), 0);
-}
-
-inline int maximum_joltage_line(const std::string &line,
-                                const int sum_width = 2) {
+  // Get the vector of digits
   auto vector = line_to_vector(line);
 
-  std::list<int> candidate_maximal_joltages;
-  int summed_candidate_joltages = 0;
-  for (size_t i = 0; i < vector.size(); i++) {
-    insert_into_sorted_list(candidate_maximal_joltages, vector[i], sum_width);
-  }
-  summed_candidate_joltages = list_sum(candidate_maximal_joltages);
-  return summed_candidate_joltages;
+  // Find the maximum of the list not including the end
+  auto max = std::max_element(vector.begin(), vector.end() - 1);
+  printf("max: %d\n", *max);
+  // Find the leftmost location of the max not including the end
+  auto leftmost_max_location =
+      std::find(vector.begin(), vector.end() - 1, *max);
+
+  printf("leftmost_max_location: %d\n", *leftmost_max_location);
+  // Find max from this location to end
+  auto max_from_leftmost_max_location =
+      std::max_element(leftmost_max_location + 1, vector.end());
+  printf("max_from_leftmost_max_location: %d\n",
+         *max_from_leftmost_max_location);
+  // Return the sum of the max and the max from the leftmost max location
+  return 10 * *max + *max_from_leftmost_max_location;
 }
 }  // namespace maxjoltage

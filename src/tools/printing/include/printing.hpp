@@ -22,7 +22,7 @@ struct Grid {
   std::vector<std::string> lines;
   Grid(const std::vector<std::string> &lines);
 
-  std::vector<std::vector<int>> occupied_grid;
+  std::vector<std::vector<int>> occupied_grid; // 0 for empty, 1 for occupied
   void fill_occupied_grid_with_padding();
   void print_occupied_grid() const;
   int sum_occupied_neighbors(int i, int j) const;
@@ -31,13 +31,10 @@ struct Grid {
 inline void Grid::fill_occupied_grid_with_padding() {
   occupied_grid.resize(lines.size() + 2,
                        std::vector<int>(lines[0].size() + 2, 0));
+  // Copy the lines into the occupied grid, with padding
   for (int i = 0; i < lines.size(); i++) {
     for (int j = 0; j < lines[i].size(); j++) {
-      if (i == 0 || i == lines.size() - 1 || j == 0 || j == lines[i].size() - 1) {
-        occupied_grid[i][j] = 0;
-        continue;
-      }
-      occupied_grid[i][j] = lines[i][j] == '@' ? 1 : 0;
+      occupied_grid[i + 1][j + 1] = lines[i][j] == '@' ? 1 : 0;
     }
   }
 }
@@ -64,4 +61,4 @@ inline Grid::Grid(const std::vector<std::string> &lines)
   fill_occupied_grid_with_padding();
 }
 
-}  // namespace printing
+} // namespace printing

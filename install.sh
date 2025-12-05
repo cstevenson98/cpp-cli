@@ -4,15 +4,15 @@ set -e
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Check for Release build first, fall back to Debug
-if [ -d "$SCRIPT_DIR/build/Release" ]; then
-    BUILD_DIR="$SCRIPT_DIR/build/Release"
-elif [ -d "$SCRIPT_DIR/build/Debug" ]; then
-    BUILD_DIR="$SCRIPT_DIR/build/Debug"
-else
-    echo "No build directory found. Build the project first."
+# Check for Release build only
+if [ ! -d "$SCRIPT_DIR/build/Release" ]; then
+    echo "No Release build directory found. Build the project in Release mode first:"
+    echo "  conan install . --build=missing -s build_type=Release"
+    echo "  conan build . -s build_type=Release"
     exit 1
 fi
+
+BUILD_DIR="$SCRIPT_DIR/build/Release"
 
 # Check write permissions
 if [ ! -w "$INSTALL_DIR" ]; then

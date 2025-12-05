@@ -6,6 +6,30 @@
     ],
     "clangd.path": "clangd",
     "editor.formatOnSave": true,
-    "C_Cpp.intelliSenseEngine": "disabled"
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "testMate.cpp.test.advancedExecutables": [
+        {
+            "pattern": "{build/Debug,build/Release}/src/**/test_*",
+            "cwd": "${absDirpath}",
+            "env": {}
+        }
+    ],
+    "testMate.cpp.discovery.loadOnStartup": true,
+    "testMate.cpp.log.logpanel": true,
+    "testMate.cpp.debug.configTemplate": {
+        "type": "cppdbg",
+        "MIMode": "gdb",
+        "program": "${exec}",
+        "args": "${argsArray}",
+        "cwd": "${cwd}",
+        "env": "${envObj}",
+        "externalConsole": false,
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ]
+    }
 }
-

@@ -16,7 +16,7 @@ inline std::vector<int> line_to_vector(const std::string &line) {
   return output;
 }
 
-inline int maximum_joltage_line_width_2(const std::string &line) {
+inline long long maximum_joltage_line_width_2(const std::string &line) {
   if (line.empty()) {
     return 0;
   }
@@ -43,4 +43,58 @@ inline int maximum_joltage_line_width_2(const std::string &line) {
   // Return the sum of the max and the max from the leftmost max location
   return 10 * *max + *max_from_leftmost_max_location;
 }
-}  // namespace maxjoltage
+
+inline long long digits_to_decimal(const std::vector<int> &vector) {
+  long long decimal = 0;
+  for (int i = 0; i < vector.size(); i++) {
+    decimal = decimal * 10 + vector[i];
+  }
+  return decimal;
+}
+
+struct FoundDigit {
+  std::vector<int>::const_iterator pos;
+  int digit;
+};
+
+// Finds the leftmost instance of the maximum in a vector<int>
+inline FoundDigit leftmost_maximum(std::vector<int>::const_iterator start_iter,
+                                   std::vector<int>::const_iterator end_iter) {
+  auto max_iter = std::max_element(start_iter, end_iter);
+  return FoundDigit{max_iter, *max_iter};
+}
+
+inline long long maximum_joltage(const std::string &line, int sum_width) {
+  auto vector = line_to_vector(line);
+  if (sum_width == 0) {
+    return 0;
+  }
+  if (sum_width == 1) {
+    return leftmost_maximum(vector.begin(), vector.end()).digit;
+  }
+  if (vector.size() <= sum_width) {
+    return digits_to_decimal(vector);
+  }
+
+  // Take first
+  std::vector<int> current_vector;
+
+  // Initialize
+  auto start_iter = vector.begin();
+  auto end_iter = vector.end();
+
+  // Find first digit
+  auto found_digit = leftmost_maximum(start_iter, end_iter - (sum_width - 1));
+  current_vector.push_back(found_digit.digit);
+
+  // Find remaining digits in order
+  for (int digit_number = 1; digit_number < sum_width; digit_number++) {
+    found_digit = leftmost_maximum(found_digit.pos + 1,
+                                   end_iter - (sum_width - 1 - digit_number));
+
+    current_vector.push_back(found_digit.digit);
+  }
+
+  return digits_to_decimal(current_vector);
+}
+} // namespace maxjoltage

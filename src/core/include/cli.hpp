@@ -60,6 +60,9 @@ class CliExecutor {
  public:
   CliExecutor(std::string program_name, std::string description = "");
 
+  /// Set usage string for help (e.g., "<source> <dest>")
+  void set_usage(const std::string& usage);
+
   /// Add a global flag (available to all commands)
   /// @param names Comma-separated short and long names, e.g., "-v,--verbose"
   /// @param type Flag type (Boolean or MultiArg)
@@ -68,7 +71,11 @@ class CliExecutor {
   void add_flag(const std::string& names, FlagType type,
                 const std::string& description = "", bool required = false);
 
-  /// Add a command
+  /// Set handler for command-less mode (just positional args + flags)
+  /// @param callback Function to execute with parsed args
+  void set_handler(CommandCallback callback);
+
+  /// Add a command (for multi-command CLIs)
   /// @param name Command name
   /// @param description Help text for the command
   /// @param callback Function to execute when command is invoked
@@ -106,8 +113,10 @@ class CliExecutor {
  private:
   std::string program_name_;
   std::string description_;
+  std::string usage_;
   std::vector<FlagDef> global_flags_;
   std::map<std::string, CommandDef> commands_;
+  CommandCallback default_handler_;
 
   /// Parse flag names string into short and long names
   static std::pair<std::string, std::string> parse_flag_names(

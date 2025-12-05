@@ -45,6 +45,14 @@ CliExecutor::CliExecutor(std::string program_name, std::string description)
     add_flag("-h,--help", FlagType::Boolean, "Show help message");
 }
 
+void CliExecutor::set_usage(const std::string& usage) {
+    usage_ = usage;
+}
+
+void CliExecutor::set_handler(CommandCallback callback) {
+    default_handler_ = std::move(callback);
+}
+
 std::pair<std::string, std::string> CliExecutor::parse_flag_names(const std::string& names) {
     std::string short_name, long_name;
     
@@ -133,17 +141,22 @@ ParseResult CliExecutor::parse(const std::vector<std::string>& args) const {
     ParseResult result;
     result.success = true;
     
+    // Command-less mode: if we have a default handler and no commands
+    bool commandless_mode = default_handler_ && commands_.empty();
+    
     if (args.empty()) {
-        result.success = false;
-        result.error_message = "No command specified";
+        if (!commandless_mode) {
+            result.success = false;
+            result.error_message = "No command specified";
+        }
         return result;
     }
     
     size_t i = 0;
     std::vector<FlagDef> command_flags;
     
-    // First, check if first arg is a command or flag
-    if (!starts_with(args[0], "-")) {
+    // In command-less mode, all non-flag args are positional
+    if (!commandless_mode && !starts_with(args[0], "-")) {
         result.command = args[0];
         auto cmd_it = commands_.find(result.command);
         if (cmd_it != commands_.end()) {
@@ -279,6 +292,11 @@ int CliExecutor::execute(const ParseResult& result) const {
         return 0;
     }
     
+    // Command-less mode: use default handler
+    if (result.command.empty() && default_handler_) {
+        return default_handler_(result);
+    }
+    
     if (result.command.empty()) {
         return -1;
     }
@@ -309,7 +327,14 @@ std::string CliExecutor::help() const {
     }
     ss << "\n\n";
     
-    ss << "Usage: " << program_name_ << " <command> [options]\n\n";
+    // Use custom usage if set, otherwise generate based on mode
+    if (!usage_.empty()) {
+        ss << "Usage: " << program_name_ << " " << usage_ << "\n\n";
+    } else if (commands_.empty()) {
+        ss << "Usage: " << program_name_ << " [options] [args...]\n\n";
+    } else {
+        ss << "Usage: " << program_name_ << " <command> [options]\n\n";
+    }
     
     if (!commands_.empty()) {
         ss << "Commands:\n";
@@ -324,7 +349,7 @@ std::string CliExecutor::help() const {
     }
     
     if (!global_flags_.empty()) {
-        ss << "Global Options:\n";
+        ss << "Options:\n";
         for (const auto& flag : global_flags_) {
             ss << "  ";
             if (!flag.short_name.empty()) {

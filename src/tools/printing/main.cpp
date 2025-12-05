@@ -7,36 +7,8 @@
 int main(int argc, char *argv[]) {
   cli::CliExecutor executor("printing", "Print formatted output");
 
-  // Default command - print input
-  executor.add_command(
-      "print", "Print formatted output from input",
-      [](const cli::ParseResult &result) {
-        bool verbose = result.get_bool("--verbose");
-
-        if (!cli::StdinReader::has_piped_input()) {
-          std::fprintf(stderr,
-                       "Error: No input provided. Pipe data to stdin\n");
-          return 1;
-        }
-
-        if (verbose) {
-          std::fprintf(stderr, "Reading from stdin...\n");
-        }
-
-        bool count = result.get_bool("--count");
-        if (count) {
-          auto lines = cli::StdinReader::read_lines();
-          const auto how_many_with_4_neighbors_or_less =
-              printing::how_many_less_than_4_neighbors(lines);
-          std::printf("%d\n", how_many_with_4_neighbors_or_less);
-        }
-        return 0;
-      });
-
-  executor.add_command_flag("print", "-c,--count", cli::FlagType::Boolean,
-                            "Count the number of @ with 4 or less neighbors");
-
-  // Total can remove command
+  // "total-can-remove" command - calculate total cells that can be removed
+  // iteratively
   executor.add_command(
       "total-can-remove",
       "Calculate total cells that can be removed iteratively",
@@ -64,9 +36,6 @@ int main(int argc, char *argv[]) {
   executor.add_command_flag("total-can-remove", "-m,--max-iterations",
                             cli::FlagType::MultiArg,
                             "Maximum iterations (default: 1000)");
-  executor.add_command_flag("total-can-remove", "-v,--verbose",
-                            cli::FlagType::Boolean,
-                            "Print grid and can-remove map at each iteration");
 
   return executor.run(argc, argv);
 }

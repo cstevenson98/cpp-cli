@@ -33,27 +33,6 @@ TEST(PrintingTest, LinesToGridTestGeneral) {
   }
 }
 
-TEST(PrintingTest, HowManyLessThan4NeighborsTest) {
-  // clang-format off
-  auto lines = std::vector<std::string>{
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-    "@@@@@@@@@",
-  };
-  // clang-format on
-
-  auto result = printing::how_many_less_than_4_neighbors(lines);
-
-  EXPECT_EQ(result, 4);
-}
-
 // ..@@.@@@@.
 // @@@.@.@.@@
 // @@@@@.@.@@
@@ -81,12 +60,6 @@ const auto kLines = std::vector<std::string>{
   "@.@.@@@.@.",
 };
 // clang-format on
-
-TEST(PrintingTest, PrintGridTest2) {
-  auto result = printing::how_many_less_than_4_neighbors(kLines);
-
-  EXPECT_EQ(result, 13);
-}
 
 TEST(PrintingTest, TotalCanRemoveTest) {
   auto lines = kLines;

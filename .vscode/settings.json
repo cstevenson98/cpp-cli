@@ -4,7 +4,6 @@
         "--header-insertion=never",
         "--background-index"
     ],
-    "clangd.path": "clangd",
     "editor.formatOnSave": true,
     "C_Cpp.intelliSenseEngine": "disabled",
     "testMate.cpp.test.advancedExecutables": [

@@ -11,6 +11,8 @@ target_link_libraries(safes PRIVATE
     core_cli
 )
 
+symlink_tool_to_root(safes)
+
 # Unit tests
 add_subdirectory(unit_tests)
 

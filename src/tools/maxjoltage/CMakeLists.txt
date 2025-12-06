@@ -11,6 +11,8 @@ target_link_libraries(maxjoltage PRIVATE
     core_cli
 )
 
+symlink_tool_to_root(maxjoltage)
+
 # Unit tests
 add_subdirectory(unit_tests)
 

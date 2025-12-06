@@ -11,6 +11,8 @@ target_link_libraries(tail PRIVATE
     core_cli
 )
 
+symlink_tool_to_root(tail)
+
 # Unit tests
 add_subdirectory(unit_tests)
 

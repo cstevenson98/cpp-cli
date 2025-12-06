@@ -14,6 +14,18 @@ enable_testing()
 # Add core library
 add_subdirectory(src/core)
 
+# Function to create symlink in project root for Debug builds
+function(symlink_tool_to_root TOOL_NAME)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_custom_command(TARGET ${TOOL_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink
+                $<TARGET_FILE:${TOOL_NAME}>
+                ${CMAKE_SOURCE_DIR}/${TOOL_NAME}
+            COMMENT "Creating symlink: ${CMAKE_SOURCE_DIR}/${TOOL_NAME}"
+        )
+    endif()
+endfunction()
+
 # Auto-discover and add all tools
 file(GLOB TOOL_DIRS RELATIVE ${CMAKE_SOURCE_DIR}/src/tools ${CMAKE_SOURCE_DIR}/src/tools/*)
 foreach(TOOL_DIR ${TOOL_DIRS})

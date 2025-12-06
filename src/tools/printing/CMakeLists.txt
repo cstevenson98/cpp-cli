@@ -11,6 +11,8 @@ target_link_libraries(printing PRIVATE
     core_cli
 )
 
+symlink_tool_to_root(printing)
+
 # Unit tests
 add_subdirectory(unit_tests)
 

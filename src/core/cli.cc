@@ -13,7 +13,6 @@ bool starts_with(const std::string& str, const std::string& prefix) {
 } // namespace
 
 // ParseResult implementation
-
 bool ParseResult::get_bool(const std::string& flag_name) const {
     auto it = flags.find(flag_name);
     if (it == flags.end()) return false;

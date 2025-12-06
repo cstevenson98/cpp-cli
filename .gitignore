@@ -24,6 +24,14 @@ CMakeUserPresets.json
 compile_commands.json
 test-results.xml
 
+# Tool symlinks (created in Debug builds)
+/cp_file
+/maxjoltage
+/printing
+/safes
+/tail
+/cephalopods
+
 # OS files
 .DS_Store
 Thumbs.db

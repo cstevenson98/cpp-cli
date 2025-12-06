@@ -33,19 +33,6 @@ TEST(PrintingTest, LinesToGridTestGeneral) {
   }
 }
 
-// ..@@.@@@@.
-// @@@.@.@.@@
-// @@@@@.@.@@
-// @.@@@@..@.
-// @@.@@@@.@@
-// .@@@@@@@.@
-// .@.@.@.@@@
-// @.@@@.@@@@
-// .@@@@@@@@.
-// @.@.@@@.@.
-
-// There are 13
-
 // clang-format off
 const auto kLines = std::vector<std::string>{
   "..@@.@@@@.",

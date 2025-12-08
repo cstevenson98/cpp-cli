@@ -168,6 +168,9 @@ struct Homework {
     return result;
   }
 
+  // Get the columns of this problem, which must be interpreted top
+  // to bottom, while ignoring the 0s. Use a stack to grab them
+  // the top of the stack, and add them to the result.
   long long get_column(int column) const {
     std::stack<long long> stack;
     for (int i = 0; i < inputs_.size(); ++i) {
@@ -201,9 +204,6 @@ struct Homework {
       const auto &op = operators_with_positions_[i].first;
       const auto &position = operators_with_positions_[i].second;
 
-      // Get the columns of this problem, which must be interpreted top
-      // to bottom, while ignoring the 0s. Use a stack to grab them
-      // the top of the stack, and add them to the result.
       auto width = i + 1 < operators_with_positions_.size()
                        ? operators_with_positions_[i + 1].second - position
                        : inputs_[0].size() - position + 1;
@@ -211,11 +211,11 @@ struct Homework {
       switch (op) {
       case HomeworkOperator::Add:
         if (verbose) {
-          std::printf("performing add on ");
+          std::fprintf(stderr, "performing add on ");
           for (const auto &input : problem_inputs) {
-            std::printf("%lld ", input);
+            std::fprintf(stderr, "%lld ", input);
           }
-          std::printf("\n");
+          std::fprintf(stderr, "\n");
         }
 
         result +=
@@ -223,11 +223,11 @@ struct Homework {
         break;
       case HomeworkOperator::Multiply:
         if (verbose) {
-          std::printf("performing multiply on ");
+          std::fprintf(stderr, "performing multiply on ");
           for (const auto &input : problem_inputs) {
-            std::printf("%lld ", input);
+            std::fprintf(stderr, "%lld ", input);
           }
-          std::printf("\n");
+          std::fprintf(stderr, "\n");
         }
 
         result +=

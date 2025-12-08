@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
           return 1;
         }
 
-        bool verbose = result.get_bool("-v,--verbose");
+        bool verbose = result.get_bool("--verbose");
         auto lines = cli::StdinReader::read_lines();
         auto homework_solution = cephalopods::do_homework_true(lines, verbose);
 

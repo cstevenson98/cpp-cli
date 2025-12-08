@@ -1,6 +1,7 @@
 # Core CLI library
 add_library(core_cli STATIC
     cli.cc
+    fullscreen_terminal.cc
 )
 
 target_include_directories(core_cli PUBLIC

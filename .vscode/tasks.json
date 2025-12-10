@@ -46,6 +46,77 @@
             "type": "shell",
             "command": "rm -rf build",
             "problemMatcher": []
+        },
+        {
+            "label": "clang-tidy: Lint All Sources",
+            "type": "shell",
+            "command": "find src -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.cc' | xargs clang-tidy -p . --",
+            "problemMatcher": {
+                "owner": "clang-tidy",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(.+):(\\d+):(\\d+):\\s+(warning|error|note):\\s+(.+)\\s+\\[(.+)\\]$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "code": 6
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "clang-tidy: Lint Current File",
+            "type": "shell",
+            "command": "clang-tidy",
+            "args": [
+                "${file}",
+                "-p",
+                "."
+            ],
+            "problemMatcher": {
+                "owner": "clang-tidy",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(.+):(\\d+):(\\d+):\\s+(warning|error|note):\\s+(.+)\\s+\\[(.+)\\]$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "code": 6
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            }
         }
     ]
 }

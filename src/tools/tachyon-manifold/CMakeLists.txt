@@ -13,3 +13,6 @@ target_link_libraries(tachyon-manifold PRIVATE
 )
 
 symlink_tool_to_root(tachyon-manifold)
+
+# Unit tests
+add_subdirectory(unit_tests)

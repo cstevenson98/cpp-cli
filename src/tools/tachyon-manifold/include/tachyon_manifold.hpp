@@ -139,14 +139,12 @@ public:
         if (manifold_[rows_completed_ + 1][i] == Cell::Splitter) {
           if (i > 0) {
             manifold_[rows_completed_ + 1][i - 1] = Cell::Beam;
-            next_timelines_count[i - 1] +=
-                timelines_count_[i] + timelines_count_[i - 1];
+            next_timelines_count[i - 1] += timelines_count_[i];
             next_timelines_count[i] = 0;
           }
           if (i < manifold_[rows_completed_].size() - 1) {
             manifold_[rows_completed_ + 1][i + 1] = Cell::Beam;
-            next_timelines_count[i + 1] +=
-                timelines_count_[i] + timelines_count_[i + 1];
+            next_timelines_count[i + 1] += timelines_count_[i];
             next_timelines_count[i] = 0;
           }
           beam_splits_count_++;
@@ -159,11 +157,6 @@ public:
       }
     }
 
-    std::cerr << "next_timelines_count: ";
-    for (const auto &count : next_timelines_count) {
-      std::cerr << count << " ";
-    }
-    std::cerr << "\n";
     timelines_count_ = next_timelines_count;
     // Move to the next row
     rows_completed_++;

@@ -27,3 +27,12 @@ class CppCliConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+    def package(self):
+        cmake = CMake(self)
+        cmake.install()
+
+    def package_info(self):
+        self.cpp_info.set_property("cmake_target_name", "cpp-cli::cpp-cli")
+        self.cpp_info.components["core_cli"].libs = ["core_cli"]
+        self.cpp_info.components["core_cli"].set_property("cmake_target_name", "cpp-cli::core_cli")

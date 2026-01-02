@@ -94,7 +94,75 @@ void CliExecutor::add_flag(const std::string& names, FlagType type,
 
 void CliExecutor::add_command(const std::string& name, const std::string& description,
                               CommandCallback callback) {
-    commands_[name] = {name, description, std::move(callback), {}};
+    commands_[name] = {name, description, std::move(callback), {}, {}};
+}
+
+std::vector<std::string> CliExecutor::split_path(const std::string& path, char delimiter) {
+    std::vector<std::string> parts;
+    std::stringstream ss(path);
+    std::string part;
+    while (std::getline(ss, part, delimiter)) {
+        if (!part.empty()) {
+            parts.push_back(part);
+        }
+    }
+    return parts;
+}
+
+CommandDef* CliExecutor::find_command(const std::vector<std::string>& path) {
+    if (path.empty()) return nullptr;
+    
+    auto it = commands_.find(path[0]);
+    if (it == commands_.end()) return nullptr;
+    
+    CommandDef* current = &it->second;
+    for (size_t i = 1; i < path.size(); ++i) {
+        auto sub_it = current->subcommands.find(path[i]);
+        if (sub_it == current->subcommands.end()) return nullptr;
+        current = &sub_it->second;
+    }
+    return current;
+}
+
+const CommandDef* CliExecutor::find_command(const std::vector<std::string>& path) const {
+    if (path.empty()) return nullptr;
+    
+    auto it = commands_.find(path[0]);
+    if (it == commands_.end()) return nullptr;
+    
+    const CommandDef* current = &it->second;
+    for (size_t i = 1; i < path.size(); ++i) {
+        auto sub_it = current->subcommands.find(path[i]);
+        if (sub_it == current->subcommands.end()) return nullptr;
+        current = &sub_it->second;
+    }
+    return current;
+}
+
+void CliExecutor::add_nested_command(const std::string& command_path,
+                                     const std::string& description,
+                                     CommandCallback callback) {
+    auto parts = split_path(command_path, '.');
+    if (parts.empty()) return;
+    
+    // Ensure first level command exists
+    if (commands_.find(parts[0]) == commands_.end()) {
+        commands_[parts[0]] = {parts[0], "", nullptr, {}, {}};
+    }
+    
+    CommandDef* current = &commands_[parts[0]];
+    
+    // Navigate/create nested structure
+    for (size_t i = 1; i < parts.size(); ++i) {
+        if (current->subcommands.find(parts[i]) == current->subcommands.end()) {
+            current->subcommands[parts[i]] = {parts[i], "", nullptr, {}, {}};
+        }
+        current = &current->subcommands[parts[i]];
+    }
+    
+    // Set the final command's properties
+    current->description = description;
+    current->callback = std::move(callback);
 }
 
 void CliExecutor::add_command_flag(const std::string& command_name, const std::string& names,
@@ -104,6 +172,18 @@ void CliExecutor::add_command_flag(const std::string& command_name, const std::s
     if (it != commands_.end()) {
         auto [short_name, long_name] = parse_flag_names(names);
         it->second.flags.push_back({short_name, long_name, type, description, required});
+    }
+}
+
+void CliExecutor::add_nested_command_flag(const std::string& command_path,
+                                          const std::string& names, FlagType type,
+                                          const std::string& description,
+                                          bool required) {
+    auto parts = split_path(command_path, '.');
+    CommandDef* cmd = find_command(parts);
+    if (cmd) {
+        auto [short_name, long_name] = parse_flag_names(names);
+        cmd->flags.push_back({short_name, long_name, type, description, required});
     }
 }
 
@@ -153,19 +233,56 @@ ParseResult CliExecutor::parse(const std::vector<std::string>& args) const {
     
     size_t i = 0;
     std::vector<FlagDef> command_flags;
+    const CommandDef* current_command = nullptr;
     
     // In command-less mode, all non-flag args are positional
     if (!commandless_mode && !starts_with(args[0], "-")) {
-        result.command = args[0];
-        auto cmd_it = commands_.find(result.command);
-        if (cmd_it != commands_.end()) {
-            command_flags = cmd_it->second.flags;
-        } else if (!commands_.empty()) {
-            result.success = false;
-            result.error_message = "Unknown command: " + result.command;
-            return result;
+        // Parse command hierarchy
+        while (i < args.size() && !starts_with(args[i], "-")) {
+            std::string potential_command = args[i];
+            
+            // Check if this is a command at current level
+            if (result.command_path.empty()) {
+                // Top-level command
+                auto cmd_it = commands_.find(potential_command);
+                if (cmd_it != commands_.end()) {
+                    result.command_path.push_back(potential_command);
+                    current_command = &cmd_it->second;
+                    command_flags = cmd_it->second.flags;
+                    ++i;
+                    
+                    // Check for subcommands
+                    while (i < args.size() && !starts_with(args[i], "-")) {
+                        auto sub_it = current_command->subcommands.find(args[i]);
+                        if (sub_it != current_command->subcommands.end()) {
+                            result.command_path.push_back(args[i]);
+                            current_command = &sub_it->second;
+                            // Accumulate flags from each level
+                            command_flags.insert(command_flags.end(),
+                                               sub_it->second.flags.begin(),
+                                               sub_it->second.flags.end());
+                            ++i;
+                        } else {
+                            // Not a subcommand, must be a positional arg or flag
+                            break;
+                        }
+                    }
+                } else if (!commands_.empty()) {
+                    result.success = false;
+                    result.error_message = "Unknown command: " + potential_command;
+                    return result;
+                } else {
+                    break;
+                }
+            }
+            
+            break;
         }
-        ++i;
+        
+        // Set the legacy single command field to the full path
+        if (!result.command_path.empty()) {
+            result.command = result.command_path.back();
+        }
     }
     
     // Parse remaining arguments
@@ -283,29 +400,32 @@ int CliExecutor::execute(const ParseResult& result) const {
     
     // Check for help flag
     if (result.get_bool("--help")) {
-        if (result.command.empty()) {
+        if (result.command_path.empty()) {
             std::printf("%s", help().c_str());
         } else {
-            std::printf("%s", help(result.command).c_str());
+            std::printf("%s", help(result.command_path).c_str());
         }
         return 0;
     }
     
     // Command-less mode: use default handler
-    if (result.command.empty() && default_handler_) {
+    if (result.command_path.empty() && default_handler_) {
         return default_handler_(result);
     }
     
-    if (result.command.empty()) {
+    if (result.command_path.empty()) {
         return -1;
     }
     
-    auto it = commands_.find(result.command);
-    if (it == commands_.end()) {
-        return -1;
+    // Find the command using the path
+    const CommandDef* cmd = find_command(result.command_path);
+    if (!cmd || !cmd->callback) {
+        // Command exists but has no callback - show help for this level
+        std::printf("%s", help(result.command_path).c_str());
+        return 0;
     }
     
-    return it->second.callback(result);
+    return cmd->callback(result);
 }
 
 int CliExecutor::run(int argc, char* argv[]) const {
@@ -377,25 +497,56 @@ std::string CliExecutor::help() const {
 }
 
 std::string CliExecutor::help(const std::string& command_name) const {
-    auto it = commands_.find(command_name);
-    if (it == commands_.end()) {
-        return "Unknown command: " + command_name + "\n";
+    return help(std::vector<std::string>{command_name});
+}
+
+std::string CliExecutor::help(const std::vector<std::string>& command_path) const {
+    const CommandDef* cmd = find_command(command_path);
+    if (!cmd) {
+        std::string path_str;
+        for (size_t i = 0; i < command_path.size(); ++i) {
+            if (i > 0) path_str += " ";
+            path_str += command_path[i];
+        }
+        return "Unknown command: " + path_str + "\n";
     }
     
-    const auto& cmd = it->second;
     std::ostringstream ss;
     
-    ss << program_name_ << " " << command_name;
-    if (!cmd.description.empty()) {
-        ss << " - " << cmd.description;
+    // Build command string
+    std::string cmd_str = program_name_;
+    for (const auto& part : command_path) {
+        cmd_str += " " + part;
+    }
+    
+    ss << cmd_str;
+    if (!cmd->description.empty()) {
+        ss << " - " << cmd->description;
     }
     ss << "\n\n";
     
-    ss << "Usage: " << program_name_ << " " << command_name << " [options]\n\n";
+    ss << "Usage: " << cmd_str;
+    if (!cmd->subcommands.empty()) {
+        ss << " <subcommand>";
+    }
+    ss << " [options]\n\n";
     
-    if (!cmd.flags.empty()) {
+    // Show subcommands if any
+    if (!cmd->subcommands.empty()) {
+        ss << "Subcommands:\n";
+        for (const auto& [name, subcmd] : cmd->subcommands) {
+            ss << "  " << name;
+            if (!subcmd.description.empty()) {
+                ss << "\t" << subcmd.description;
+            }
+            ss << "\n";
+        }
+        ss << "\n";
+    }
+    
+    if (!cmd->flags.empty()) {
         ss << "Command Options:\n";
-        for (const auto& flag : cmd.flags) {
+        for (const auto& flag : cmd->flags) {
             ss << "  ";
             if (!flag.short_name.empty()) {
                 ss << flag.short_name;

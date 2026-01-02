@@ -23,6 +23,7 @@ struct ParseResult {
   bool success = false;
   std::string error_message;
   std::string command;
+  std::vector<std::string> command_path;  // Full path of nested commands
   std::map<std::string, FlagValue> flags;
   std::vector<std::string> positional_args;
 
@@ -53,6 +54,7 @@ struct CommandDef {
   std::string description;
   CommandCallback callback;
   std::vector<FlagDef> flags;
+  std::map<std::string, CommandDef> subcommands;  // Nested subcommands
 };
 
 /// CLI Executor - main class for parsing and executing commands
@@ -82,11 +84,25 @@ class CliExecutor {
   void add_command(const std::string& name, const std::string& description,
                    CommandCallback callback);
 
+  /// Add a nested subcommand using command path (e.g., "year-2025.day-1")
+  /// @param command_path Dot-separated path (e.g., "year-2025.day-1.part-1")
+  /// @param description Help text for the command
+  /// @param callback Function to execute when command is invoked
+  void add_nested_command(const std::string& command_path,
+                          const std::string& description,
+                          CommandCallback callback);
+
   /// Add a flag specific to a command
   void add_command_flag(const std::string& command_name,
                         const std::string& names, FlagType type,
                         const std::string& description = "",
                         bool required = false);
+
+  /// Add a flag to a nested command using dot-separated path
+  void add_nested_command_flag(const std::string& command_path,
+                               const std::string& names, FlagType type,
+                               const std::string& description = "",
+                               bool required = false);
 
   /// Parse command line arguments
   /// @param argc Argument count
@@ -110,6 +126,9 @@ class CliExecutor {
   /// Generate help text for a specific command
   std::string help(const std::string& command_name) const;
 
+  /// Generate help text for a nested command (dot-separated path)
+  std::string help(const std::vector<std::string>& command_path) const;
+
  private:
   std::string program_name_;
   std::string description_;
@@ -128,6 +147,13 @@ class CliExecutor {
 
   /// Get canonical name for a flag (prefers long name)
   static std::string canonical_name(const FlagDef& flag);
+
+  /// Find command by path (returns nullptr if not found)
+  CommandDef* find_command(const std::vector<std::string>& path);
+  const CommandDef* find_command(const std::vector<std::string>& path) const;
+
+  /// Split command path string by delimiter
+  static std::vector<std::string> split_path(const std::string& path, char delimiter = '.');
 };
 
 }  // namespace cli
